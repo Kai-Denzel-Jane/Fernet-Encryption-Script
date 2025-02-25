@@ -91,13 +91,12 @@ def main():
     menu_options = [
         L_CYAN + "1. Encrypt",
         L_CYAN + "2. Decrypt",
-        L_CYAN + "3. Input key and use to encrypt / decrypt",
-        L_CYAN + "4. Print out your current key",
-        L_CYAN + "5. Set password",
-        L_CYAN + "6. Reset Password and Key",
-        L_CYAN + "7. Manage Keys",
-        L_CYAN + "8. Encrypt a file",
-        L_CYAN + "9. Decrypt a file",
+        L_CYAN + "3. Print out your current key",
+        L_CYAN + "4. Set password",
+        L_CYAN + "5. Reset Password and Key",
+        L_CYAN + "6. Manage Keys",
+        L_CYAN + "7. Encrypt a file",
+        L_CYAN + "8. Decrypt a file",
         L_CYAN + "0. Exit" + RESET
     ]
 
@@ -315,7 +314,9 @@ def manageKeys(KEY_BACKUP):
         print("1. Generate a new key (backups the previous key)")
         print("2. Backup a key")
         print("3. Delete backed up key")
-        print("4. Restore backed up key as current key")
+        print("4. Input a custom key")
+        print("5. Print out key, and backed up key")
+        print("6. Restore backed up key as current key")
         print("0. Go back to main menu")
         option_key = validateInput("Input a number: ", int, "Please input a number")
 
@@ -348,6 +349,15 @@ def manageKeys(KEY_BACKUP):
                     loadEnvVariables()
                     break
             case 4:
+                customKey(PASSWORD_D)
+
+                loadEnvVariables()
+                break
+            case 5:
+                print(KEY)
+                print(KEY_BACKUP)
+
+            case 6:
                 ask = input("Are you sure [y/n]")
                 if ask == "y":
                     dotenv.set_key(".env", "KEY", KEY_BACKUP)
@@ -355,6 +365,7 @@ def manageKeys(KEY_BACKUP):
 
                     loadEnvVariables()
                     break
+
             case 0:
                 break
 
@@ -492,18 +503,16 @@ while True:
             decrypt = decryptFunc(KEY, PASSWORD_D)
             print(decrypt)
         case 3:
-            customKey(PASSWORD_D)
-        case 4:
             outputKey(KEY, PASSWORD_D)
-        case 5:
+        case 4:
             setPswd(PASSWORD_D)
-        case 6:
+        case 5:
             reset(PASSWORD_D)
-        case 7:
+        case 6:
             manageKeys(KEY_BACKUP)
-        case 8:
+        case 7:
             encryptFile(KEY)
-        case 9:
+        case 8:
             decryptFile(KEY, PASSWORD_D)
         case 0:
             print("The script will now stop")
