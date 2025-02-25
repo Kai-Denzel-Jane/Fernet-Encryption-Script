@@ -91,14 +91,13 @@ def main():
     menu_options = [
         L_CYAN + "1. Encrypt",
         L_CYAN + "2. Decrypt",
-        L_CYAN + "3. Generate new key",
-        L_CYAN + "4. Input key and use to encrypt / decrypt",
-        L_CYAN + "5. Print out your current key",
-        L_CYAN + "6. Set password",
-        L_CYAN + "7. Reset Password and Key",
-        L_CYAN + "8. Manage Keys",
-        L_CYAN + "9. Encrypt a file",
-        L_CYAN + "10. Decrypt a file",
+        L_CYAN + "3. Input key and use to encrypt / decrypt",
+        L_CYAN + "4. Print out your current key",
+        L_CYAN + "5. Set password",
+        L_CYAN + "6. Reset Password and Key",
+        L_CYAN + "7. Manage Keys",
+        L_CYAN + "8. Encrypt a file",
+        L_CYAN + "9. Decrypt a file",
         L_CYAN + "0. Exit" + RESET
     ]
 
@@ -107,13 +106,7 @@ def main():
 
     choice = validateInput("Input a number: ", int, "Please input a number")
 
-    try:
-        choice = int(choice)
-        return choice
-    except ValueError:
-        print(L_RED + "Please input a number" + RESET)
-
-    
+    return choice
 
 # Encrypt function
 def encryptFunc(KEY):
@@ -319,14 +312,26 @@ def manageKeys(KEY_BACKUP):
         None
     """
     while True:
-        print("1. Backup a key")
-        print("2. Delete backed up key")
-        print("3. Restore backed up key as current key")
+        print("1. Generate a new key (backups the previous key)")
+        print("2. Backup a key")
+        print("3. Delete backed up key")
+        print("4. Restore backed up key as current key")
         print("0. Go back to main menu")
         option_key = validateInput("Input a number: ", int, "Please input a number")
 
         match option_key:
             case 1:
+                print("Warning this will backup your current key, wiping any previous backups as well.")
+                warn = input("Are you sure [y/n]")
+                if warn == "y":
+                    backedupkey = KEY
+                    dotenv.set_key(".env", "KEY_BACKUP", backedupkey)
+
+                    keyGen(PASSWORD_D)
+
+                    loadEnvVariables()
+                    break
+            case 2:
                 if KEY_BACKUP != '':
                     print("Delete this backed up key first")
 
@@ -335,14 +340,14 @@ def manageKeys(KEY_BACKUP):
 
                 loadEnvVariables()
                 break
-            case 2:
+            case 3:
                 ask = input("Are you sure [y/n]]")
                 if ask == "y":
                     dotenv.set_key(".env", "KEY_BACKUP", '')
 
                     loadEnvVariables()
                     break
-            case 3:
+            case 4:
                 ask = input("Are you sure [y/n]")
                 if ask == "y":
                     dotenv.set_key(".env", "KEY", KEY_BACKUP)
@@ -487,20 +492,18 @@ while True:
             decrypt = decryptFunc(KEY, PASSWORD_D)
             print(decrypt)
         case 3:
-            keyGen(PASSWORD_D)
+            customKey(PASSWORD_D)
         case 4:
-            customKey()
-        case 5:
             outputKey(KEY, PASSWORD_D)
-        case 6:
+        case 5:
             setPswd(PASSWORD_D)
+        case 6:
+            reset(PASSWORD_D)
         case 7:
-            reset()
-        case 8:
             manageKeys(KEY_BACKUP)
-        case 9:
+        case 8:
             encryptFile(KEY)
-        case 10:
+        case 9:
             decryptFile(KEY, PASSWORD_D)
         case 0:
             print("The script will now stop")
