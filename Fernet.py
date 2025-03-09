@@ -1,82 +1,15 @@
 # Imports packages
-import os
-from dotenv import load_dotenv
-import dotenv
 from cryptography.fernet import Fernet
+import cryptography.fernet
 import base64
-import colorama
+from helpers.constants import L_CYAN, L_RED, L_YELLOW, L_GREEN, RESET, DEFAULT_E
+from helpers.environment import setupEnvironment, updateEnvironment
+from helpers.input_handling import validate_input
+from helpers.key_management import generate_key, outputKey, manageKeys
+from helpers.cryptography import encrypt_func, decrypt_func, encryptFile, decryptFile
 
-GREEN = colorama.Fore.GREEN
-RED = colorama.Fore.RED
-CYAN = colorama.Fore.CYAN
-YELLOW = colorama.Fore.YELLOW
-MAGENTA = colorama.Fore.MAGENTA
-
-L_GREEN = colorama.Fore.LIGHTGREEN_EX
-L_RED = colorama.Fore.LIGHTRED_EX
-L_CYAN = colorama.Fore.LIGHTCYAN_EX
-L_YELLOW = colorama.Fore.LIGHTYELLOW_EX
-L_MAGENTA = colorama.Fore.LIGHTMAGENTA_EX
-
-RESET = colorama.Fore.RESET
-
-default_e = "YWxwaW5l"
-
-def loadEnvVariables():
-
-    if load_dotenv(dotenv_path=".env") == False:
-        print(L_RED + "No .env file found, creating one for you." + RESET)
-        with open(".env", "w") as file:
-            file.close()
-
-        load_dotenv(dotenv_path=".env")
-        os.environ.clear()
-        dotenv.set_key(".env", "PASSWORD", default_e)
-        dotenv.set_key(".env", "KEY_BACKUP", "")
-        dotenv.set_key(".env", "KEY", "")
-
-    
-
-    os.environ.clear()
-    load_dotenv(dotenv_path=".env")
-    KEY = os.getenv("KEY")
-    PASSWORD_E = os.getenv("PASSWORD")
-    PASSWORD_D = base64.b64decode(PASSWORD_E).decode("utf-8", "strict")
-    KEY_BACKUP = os.getenv("KEY_BACKUP")
-
-    return KEY, PASSWORD_E, PASSWORD_D, KEY_BACKUP
-
-def validateInput(prompt, expected_type, error_message):
-    while True:
-        user_input = input(L_YELLOW + prompt + RESET)
-        try:
-            user_input = expected_type(user_input)
-            return user_input
-        except ValueError:
-            print(L_RED + error_message + RESET)
-
-
-loadEnvVariables()
-
-# Asks users for their password
-def passCheck(PASSWORD_D):
-
-    """
-    Asks the user for password and checks if it is correct
-    
-    Args:
-        PASSWORD_D (str): password
-    
-    Returns:
-        bool: validity of password
-    """
-    
-    while True:
-        user_input = input(L_YELLOW + "Enter password: " + RESET)
-        if user_input == PASSWORD_D:
-            return True
-        else:
-            print(L_RED + "Try again." + RESET)
+# Loads the .env file
+setupEnvironment()
 
 def main():
     """
@@ -100,149 +33,17 @@ def main():
         L_CYAN + "0. Exit" + RESET
     ]
 
-
     print("\n".join(menu_options))
 
-    choice = validateInput("Input a number: ", int, "Please input a number")
-
-    return choice
-
-# Encrypt function
-def encryptFunc(KEY):
-
-    """
-    Encrypts the text the user inputs
-
-    Args:
-        KEY (str): encryption key
-
-    Returns:
-        str: encrypted text
-
-    """
-
-    text = validateInput("Input text: ", str, "Please input text")
-
-    data = bytes(text, encoding="utf-8")
-    encryption_tool = Fernet(KEY)
-    encrypted = encryption_tool.encrypt(data)
-
-    return(str(encrypted))
-
-# Decrypt function
-def decryptFunc(KEY, PASSWORD_D):
-    """
-    Decrypts the text the user inputs
-
-    Args:
-        KEY (str): encryption key
-        PASSWORD_D (str): password
-
-    Returns:
-        str: decrypted text
-    """
-
-    if passCheck(PASSWORD_D) == True:
-
-        data = validateInput("Input text: ", str, "Please input text")
-
-        # Remove the "b'" and "'" from the input if they exist
-        if data.startswith("b'") and data.endswith("'"):
-            data = data[2:-1]
-
-        # Try to decrypt the data
-        try:
-            encryption_tool = Fernet(KEY)
-            decrypted = encryption_tool.decrypt(data.encode())
-        except:
-            print(L_RED + "Decryption failed." + RESET)
-            return
-
-        # Try to decode the decrypted data
-        try:
-            decrypted = decrypted.decode("utf-8", "strict")
-        except:
-            print(L_RED + "Decoding failed." + RESET)
-            return
-
-        return decrypted
-    else:
-        passCheck(PASSWORD_D)
-
-
-# Key generation
-def keyGen(PASSWORD_D):
-
-    """
-    Generates a new key and saves it to .env file
-
-    Args:
-        PASSWORD_D (str): password
-    
-    Returns:
-        None
-    
-    """
-
-    if passCheck(PASSWORD_D) == True:
-
-        key = Fernet.generate_key()
-        key_str = key.decode("utf-8", "strict")
-
-        dotenv.set_key(".env", "KEY", key_str)
-
-        loadEnvVariables()
-        print("Key generated")
-
-    else:
-        passCheck(PASSWORD_D)
-
-# Import custom keys so you can share encrypted messages with others
-def customKey(PASSWORD_D):
-
-    """
-    Imports a custom key and saves it to .env file
-
-    Args:
-        PASSWORD_D (str): password
-
-    Returns:
-        None
-    
-    """
-
-    if passCheck(PASSWORD_D) == True:
-
-        key = input("Input key: ")
-        key = bytes(key, encoding="utf-8")
-        key_str = key.decode("utf-8", "strict")
-        dotenv.set_key(".env", "KEY", key_str)
-
-        loadEnvVariables()     
-    else:
-        passCheck(PASSWORD_D)
-
-def outputKey(KEY, PASSWORD_D):
-
-    """
-    Prints out the current key
-
-    Args:
-        KEY (str): encryption key
-        PASSWORD_D (str): password
-
-    Returns:
-        None
-
-    """
-    
-    if passCheck(PASSWORD_D) == True:
-        print(KEY)
-    else:
-        passCheck(PASSWORD_D)
+    while True:
+        choice = validate_input("Input a number: ", int, "Please input a valid number")
+        if 0 <= choice <= 8:
+            return choice
+        else:
+            print(L_RED + "Invalid choice. Please select a number between 0 and 8." + RESET)
 
 # Changes password
-def setPswd(PASSWORD_D):
+def setPassword(PASSWORD_D):
 
     """
     Changes the password
@@ -255,26 +56,22 @@ def setPswd(PASSWORD_D):
     
     """
     
-    print("Warning for security reasons this will reset your key as well so you cant access someone elses encryptions by resetting password.")
-    keyGen(PASSWORD_D)
+    print(L_RED + "Warning for security reasons this will reset your key as well so you cant access someone elses encryptions by resetting password." + RESET)
+    generate_key(PASSWORD_D)
 
-    password_d = input("Input new Password: ")
-    double_check = input("Input new Password again: ")
+    while True:
+        password_d = input(L_YELLOW + "Input new Password: " + RESET)
+        double_check = input(L_YELLOW + "Input new Password again: " + RESET)
 
-    if password_d != double_check:
-        print("Passwords do not match")
-        setPswd(PASSWORD_D)
+        if password_d != double_check:
+            print(L_RED + "Passwords do not match" + RESET)
+        else:
+            break
 
     password_e = base64.b64encode(bytes(password_d, encoding="utf-8"))
-    print("Password set")
+    print(L_GREEN + "Password set" + RESET)
 
-    dotenv.set_key(".env", "PASSWORD", password_e.decode("utf-8", "strict"))
-
-
-    loadEnvVariables()
-    
-
-    
+    updateEnvironment(KEY=None, KEY_BACKUP=None, PASSWORD_E=password_e.decode("utf-8", "strict"))
 
 # Resets the password and generates a new key
 def reset(PASSWORD_D):
@@ -290,155 +87,11 @@ def reset(PASSWORD_D):
     
     """
 
-    keyGen(PASSWORD_D)
-    default_d = "alpine"
-    default_e = base64.b64encode(bytes(default_d, encoding="utf-8"))
+    generate_key(PASSWORD_D)
     
-    dotenv.set_key(".env", "PASSWORD", default_e)
+    updateEnvironment(KEY=None, KEY_BACKUP=None, PASSWORD_E=DEFAULT_E)
 
-    loadEnvVariables()
-
-def manageKeys(KEY_BACKUP):
-    """
-    Manages keys
-
-    This function allows the user to perform various operations on encryption keys, such as backing up a key, deleting a backed up key, and restoring a backed up key as the current key.
-
-    Args:
-        KEY_BACKUP (str): backed up key
-    
-    Returns:
-        None
-    """
-    while True:
-        print("1. Generate a new key (backups the previous key)")
-        print("2. Backup a key")
-        print("3. Delete backed up key")
-        print("4. Input a custom key")
-        print("5. Print out key, and backed up key")
-        print("6. Restore backed up key as current key")
-        print("0. Go back to main menu")
-        option_key = validateInput("Input a number: ", int, "Please input a number")
-
-        match option_key:
-            case 1:
-                print("Warning this will backup your current key, wiping any previous backups as well.")
-                warn = input("Are you sure [y/n]")
-                if warn == "y":
-                    backedupkey = KEY
-                    dotenv.set_key(".env", "KEY_BACKUP", backedupkey)
-
-                    keyGen(PASSWORD_D)
-
-                    loadEnvVariables()
-                    break
-            case 2:
-                if KEY_BACKUP != '':
-                    print("Delete this backed up key first")
-
-                backedupkey = input("Input the key: ")
-                dotenv.set_key(".env", "KEY_BACKUP", backedupkey)
-
-                loadEnvVariables()
-                break
-            case 3:
-                ask = input("Are you sure [y/n]]")
-                if ask == "y":
-                    dotenv.set_key(".env", "KEY_BACKUP", '')
-
-                    loadEnvVariables()
-                    break
-            case 4:
-                customKey(PASSWORD_D)
-
-                loadEnvVariables()
-                break
-            case 5:
-                print(KEY)
-                print(KEY_BACKUP)
-
-            case 6:
-                ask = input("Are you sure [y/n]")
-                if ask == "y":
-                    dotenv.set_key(".env", "KEY", KEY_BACKUP)
-                    dotenv.set_key(".env", "KEY_BACKUP", '')
-
-                    loadEnvVariables()
-                    break
-
-            case 0:
-                break
-
-def encryptFile(KEY):
-
-    """
-    Encrypts a file
-
-    Args:
-        KEY (str): encryption key
-    
-    Returns:
-        None
-    
-    """
-
-    
-    cwd_contents = os.listdir(os.curdir)
-
-    for item in cwd_contents:
-        print(item)
-
-    filename = input("Input file name: ")
-    
-    with open(filename, "rb") as file:
-
-        data = file.read()
-
-    encryption_tool = Fernet(KEY)
-    encrypted = encryption_tool.encrypt(data)
-
-    with open(filename, "wb") as file:
-
-        file.write(encrypted)
-        print("File encrypted")
-
-
-def decryptFile(KEY, PASSWORD_D):
-    
-    """
-    Decrypts a file
-
-    Args:
-        KEY (str): encryption key
-        PASSWORD_D (str): password
-    
-    Returns:
-        None
-    
-    """
-
-    if passCheck(PASSWORD_D) == True:
-        cwd_contents = os.listdir(os.curdir)
-
-        for item in cwd_contents:
-            print(item)
-
-        filename = input("Input file name: ")
-    
-        with open(filename, "rb") as file:
-
-            data = file.read()
-
-        encryption_tool = Fernet(KEY)
-        decrypted = encryption_tool.decrypt(data)
-
-        with open(filename, "wb") as file:
-
-            file.write(decrypted)
-            print("File decrypted")
-
-    else:
-        passCheck(PASSWORD_D)        
+    print(L_GREEN + "Password and key reset" + RESET)        
 
 # Prompts user if they would like to end the script 
 def end():
@@ -455,12 +108,12 @@ def end():
     """
 
     while True:
-            end = input("End [y/n]")
+            end = input(L_YELLOW + "End [y/n]" + RESET)
 
             try:
                 end = str(end)
             except ValueError:
-                print("Please input y or n")
+                print(L_RED + "Please input y or n" + RESET)
                 continue
 
             if end.lower() in ["yes", "y", "no", "n"]:
@@ -469,27 +122,27 @@ def end():
                 elif end.lower() in ["no", "n"]:
                     return
             else:
-                print("Please input y or n")
+                print(L_RED + "Please input y or n" + RESET)
 
 if __name__ == "__main__":
 
-    KEY, PASSWORD_E, PASSWORD_D, KEY_BACKUP = loadEnvVariables()
+    KEY, KEY_BACKUP, PASSWORD_E, PASSWORD_D, = setupEnvironment()
 
     if KEY == "" or KEY == None or PASSWORD_D == "alpine" or PASSWORD_D == None or PASSWORD_D == "":
-        print("Either this is your first time running the script or YOU changed you key to '',no worries we are generating a new key for you.")
-        print("Default password is 'alpine' you will be prompted to change it after the key is generated.")
-        keyGen(PASSWORD_D)
-        print("Please change your password")
-        setPswd(PASSWORD_D)
+        print(L_CYAN + "Either this is your first time running the script or YOU changed you key to '',no worries we are generating a new key for you." + RESET)
+        print(L_CYAN + "Default password is 'alpine' you will be prompted to change it after the key is generated." + RESET)
+        generate_key(PASSWORD_D)
+        print(L_CYAN + "Please change your password" + RESET)
+        setPassword(PASSWORD_D)
         
 else:
 
-    print("This script is not meant to be run as a module. Please run it as a standalone script.")
+    print(L_RED + "This script is not meant to be run as a module. Please run it as a standalone script." + RESET)
 
 # Controls the users choice throughout the script      
 while True:
 
-    KEY, PASSWORD_E, PASSWORD_D, KEY_BACKUP = loadEnvVariables()
+    KEY, KEY_BACKUP, PASSWORD_E, PASSWORD_D = setupEnvironment()
 
     choice = main()
     
@@ -497,25 +150,25 @@ while True:
     match choice:                                   
 
         case 1:
-            encrypt = encryptFunc(KEY)
-            print(encrypt)
+            encrypt = encrypt_func(KEY)
+            print(L_GREEN + encrypt + RESET)
         case 2:
-            decrypt = decryptFunc(KEY, PASSWORD_D)
-            print(decrypt)
+            decrypt = decrypt_func(KEY, PASSWORD_D)
+            print(L_GREEN + decrypt + RESET)
         case 3:
             outputKey(KEY, PASSWORD_D)
         case 4:
-            setPswd(PASSWORD_D)
+            setPassword(PASSWORD_D)
         case 5:
             reset(PASSWORD_D)
         case 6:
-            manageKeys(KEY_BACKUP)
+            manageKeys(KEY, KEY_BACKUP)
         case 7:
             encryptFile(KEY)
         case 8:
             decryptFile(KEY, PASSWORD_D)
         case 0:
-            print("The script will now stop")
+            print(L_CYAN + "The script will now stop" + RESET)
             exit()
 
     end()
