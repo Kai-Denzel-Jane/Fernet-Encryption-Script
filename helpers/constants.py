@@ -1,6 +1,4 @@
 import colorama
-import os
-import base64
 
 GREEN = colorama.Fore.GREEN
 RED = colorama.Fore.RED

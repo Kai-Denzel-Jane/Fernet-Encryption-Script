@@ -1,6 +1,5 @@
 # Imports packages
 from cryptography.fernet import Fernet
-import cryptography.fernet
 import base64
 from helpers.constants import L_CYAN, L_RED, L_YELLOW, L_GREEN, RESET, DEFAULT_E
 from helpers.environment import setupEnvironment, updateEnvironment
@@ -8,9 +7,10 @@ from helpers.input_handling import validate_input
 from helpers.key_management import generate_key, outputKey, manageKeys
 from helpers.cryptography import encrypt_func, decrypt_func, encryptFile, decryptFile
 
-# Loads the .env file
+# Loads the environment
 setupEnvironment()
 
+# Main Menu
 def main():
     """
     Prints out the welcome screen and asks the user for their choice
