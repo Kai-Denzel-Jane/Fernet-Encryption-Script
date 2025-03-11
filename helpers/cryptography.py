@@ -2,6 +2,7 @@ from cryptography.fernet import Fernet
 import cryptography.fernet
 from helpers.constants import *
 from helpers.input_handling import *
+import os
 
 # Encryption and Decryption functions
 
